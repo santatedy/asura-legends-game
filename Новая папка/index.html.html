@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Легенды Асура 3.1</title>
+<style>
+:root{--p:#4a2d7d;--s:#f5e6c8;--g:#2e7d32;--r:#c62828;--y:#ffd600;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#1a1a2e,#0f0c29);color:var(--s);min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:10px}
+.card{background:rgba(26,35,126,.85);border:1px solid var(--p);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--p);padding-bottom:8px;margin-bottom:12px}
+.stat-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.stat{background:rgba(255,255,255,.1);padding:6px 10px;border-radius:6px;font-size:.9rem}
+.btn{background:var(--g);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;transition:.2s;margin:2px}
+.btn:hover{background:#1b5e20}
+.btn-danger{background:var(--r)}.btn-danger:hover{background:#b71c1c}
+.btn-primary{background:var(--p)}.btn-primary:hover{background:#311b92}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.log{background:rgba(0,0,0,.6);padding:10px;border-radius:8px;font-family:monospace;font-size:.85rem;max-height:200px;overflow-y:auto;margin-top:8px;border:1px solid #333}
+.resource{margin-right:12px}
+.tab-buttons{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab-btn{background:rgba(255,255,255,.1);color:var(--s);border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:6px;cursor:pointer}
+.tab-btn.active{background:var(--p)}
+label{display:block;margin-bottom:4px;font-weight:700}
+input,select{width:100%;padding:8px;border-radius:6px;border:1px solid #444;background:rgba(255,255,255,.1);color:#fff}
+.talent{background:rgba(255,214,0,.15);padding:8px;border-radius:6px;border:1px solid var(--y);cursor:pointer;margin:4px;display:inline-block}
+.talent.on{background:rgba(255,214,0,.45)}
+.auth-wrap{max-width:420px;margin:8vh auto}
+.auth-tabs{display:flex;gap:6px;margin-bottom:12px}
+.progress{background:rgba(0,0,0,.5);border-radius:6px;height:14px;overflow:hidden;margin:4px 0}
+.progress>div{background:linear-gradient(90deg,#ffd600,#ff9800);height:100%}
+@media(max-width:500px){.header{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ЭКРАН ВХОДА -->
+<div id="auth-screen" class="auth-wrap">
+  <div class="card">
+    <h2 style="text-align:center">⚔️ Легенды Асура 3.1</h2>
+    <div class="auth-tabs">
+      <button class="tab-btn active" id="auth-tab-login" onclick="authTab('login')">Вход</button>
+      <button class="tab-btn" id="auth-tab-reg" onclick="authTab('reg')">Регистрация</button>
+    </div>
+    <label>Ник героя</label>
+    <input id="auth-nick" maxlength="16" placeholder="Например: Brunooo">
+    <label style="margin-top:8px">Пароль</label>
+    <input id="auth-pass" type="password" maxlength="32" placeholder="Пароль">
+    <p id="auth-msg" style="color:#ff8a80;min-height:20px;margin:8px 0"></p>
+    <button class="btn btn-primary" style="width:100%" onclick="authSubmit()">Продолжить</button>
+    <div style="margin:12px 0;padding:10px;background:rgba(255,255,255,0.05);border-left:4px solid var(--y);border-radius:6px">
+      <p style="margin:0 0 6px 0;font-weight:700">🎁 Быстрый старт для Santatedy</p>
+      <p style="margin:0;font-size:.85rem;color:#ccc">
+        Нажмите «Регистрация», введите ник <b>santatedy</b> и любой пароль — игра сразу выдаст стартовый набор.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ИГРА -->
+<div id="game-screen" style="display:none">
+  <div class="header">
+    <div>
+      <h2 style="margin:0">Легенды Асура 3.1 <span id="ver-badge" style="color:#ffd600"></span></h2>
+      <span id="whoami" style="color:#aaa;font-size:.85rem"></span>
+    </div>
+    <div>
+      <span class="resource">💰 <span id="gold-val">0</span></span>
+      <span class="resource">🪙 <span id="silver-val">0</span></span>
+      <span class="resource">💎 <span id="crystal-val">0</span></span>
+      <button class="btn btn-danger" onclick="logout()">Выйти</button>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat" id="av-badge">🛡️</div>
+    <div class="stat">🗡 Сила: <b id="stat-str"></b></div>
+    <div class="stat">❤️ Жизнь: <b id="stat-hp"></b></div>
+    <div class="stat">💥 Удар: <b id="stat-dmg"></b></div>
+    <div class="stat">🛡 Броня: <b id="stat-armor"></b></div>
+    <div class="stat">⚡ Энергия: <b id="stat-energy"></b>/<b id="stat-maxenergy"></b></div>
+    <div class="stat" style="flex:1;min-width:180px">📈 Ур. <b id="stat-lvl"></b>
+      <div class="progress"><div id="xp-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="tab-buttons">
+    <button class="tab-btn active" data-tab="hero" onclick="showTab('hero')">Герой</button>
+    <button class="tab-btn" data-tab="pet" onclick="showTab('pet')">Питомец</button>
+    <button class="tab-btn" data-tab="cave" onclick="showTab('cave')">Пещеры</button>
+    <button class="tab-btn" data-tab="craft" onclick="showTab('craft')">Крафт</button>
+    <button class="tab-btn" data-tab="talent" onclick="showTab('talent')">Таланты</button>
+    <button class="tab-btn" data-tab="boss" onclick="showTab('boss')">Боссы</button>
+    <button class="tab-btn" data-tab="profile" onclick="showTab('profile')">Профиль</button>
+    <button class="tab-btn" data-tab="admin" id="btn-admin" style="display:none" onclick="showTab('admin')">👑 Админ</button>
+  </div>
+
+  <div id="tab-hero">
+    <div class="grid-3">
+      <div class="card"><h3>🖼 Аватарка</h3>
+        <select id="avatar-select" onchange="setAvatar(this.value)">
+          <option>🛡️ Воин</option><option>🏹 Лучник</option><option>🧙 Маг</option>
+          <option>🥷 Ниндзя</option><option>👑 Король</option><option>🐉 Дракон</option>
+          <option>🐺 Волк</option><option>🦅 Сокол</option><option>🗿 Голем</option><option>🧟 Некромант</option>
+        </select>
+        <div style="font-size:3rem;text-align:center;margin-top:10px" id="avatar-big">🛡️</div>
+      </div>
+      <div class="card"><h3>🏅 Клан</h3>
+        <select id="clan-select" onchange="setClan(this.value)">
+          <option value="Стальное Сердце">Стальное Сердце (+15% Броня)</option>
+          <option value="Клык Бездны">Клык Бездны (+20% Удар)</option>
+          <option value="Пламя Асура">Пламя Асура (+15% Сила)</option>
+        </select>
+        <p id="clan-bonus" style="margin-top:8px"></p>
+      </div>
+      <div class="card"><h3>⚒ Тренировка</h3>
+        <p>Тренировка поднимает базовые статы.</p>
+        <button class="btn" onclick="train('str')">Сила (+5)</button>
+        <button class="btn" onclick="train('dmg')">Удар (+2)</button>
+        <button class="btn" onclick="train('armor')">Броня (+2)</button>
+        <button class="btn" onclick="train('hp')">Жизнь (+20)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-pet" style="display:none">
+    <div class="grid-3">
+      <div class="card"><h3>🐾 Питомец</h3>
+        <select id="pet-select" onchange="setPet(this.value)">
+          <option>Дракон (+30% Сила)</option><option>Волк (+25% Удар)</option>
+          <option>Тигр (+25% Броня)</option><option>Феникс (+20% Реген)</option><option>Голем (+35% Жизнь)</option>
+        </select>
+        <p>Ур. <b id="pet-lvl"></b> | Опыт: <span id="pet-xp-txt"></span>
+        <div class="progress"><div id="pet-xp-bar" style="width:0%"></div></p>
+      </div>
+      <div class="card"><h3>🛡 Броня питомца</h3>
+        <p>Шлем: <b id="pa-helm"></b> | Кольчуга: <b id="pa-chest"></b></p>
+        <p>Когти: <b id="pa-weapon"></b> | Амулет: <b id="pa-amulet"></b></p>
+        <button class="btn" onclick="upPet('helm')">🔨 Шлем</button>
+        <button class="btn" onclick="upPet('chest')">🔨 Кольчуга</button>
+        <button class="btn" onclick="upPet('weapon')">🔨 Когти</button>
+        <button class="btn" onclick="upPet('amulet')">🔨 Амулет</button>
+      </div>
+      <div class="card"><h3>💎 Руны</h3>
+        <p>Установлено: <b id="pet-runes"></b>/4. Каждая руна: +5% ко всем статам.</p>
+        <button class="btn" onclick="addRune()">Вставить руну</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-cave" style="display:none"><div class="card"><h3>Пещеры ждут...</h3><p>Здесь будут битвы с монстрами.</p></div></div>
+  <div id="tab-craft" style="display:none"><div class="card"><h3>Мастерская</h3><p>Крафт предметов и улучшение экипировки.</p></div></div>
+  <div id="tab-talent" style="display:none"><div class="card"><h3>Дерево талантов</h3><p>Выберите путь развития героя.</p></div></div>
+  <div id="tab-boss" style="display:none"><div class="card"><h3>Боссы мира</h3><p>Сложные испытания для опытных игроков.</p></div></div>
+
+  <div id="tab-profile" style="display:none">
+    <div class="card">
+      <h3>Профиль игрока</h3>
+      <p>Ник: <b id="prof-nick"></b></p>
+      <p>Дата создания: <b id="prof-date"></b></p>
+      <hr>
+      <button class="btn btn-primary" onclick="checkUpdates(false)">🔄 Проверить обновления</button>
+      <button class="btn" onclick="setUpdateUrl()">🔗 Задать ссылку обновлений</button>
+      <p id="update-status" style="margin-top:10px"></p>
+    </div>
+  </div>
+
+  <div id="tab-admin" style="display:none">
+    <div class="card"><h3>👑 Админ-панель</h3>
+      <h4>Выдать себе ресурсы</h4>
+      <input id="adm-amount" type="number" value="1000" style="width:120px">
+      <button class="btn" onclick="admGive('gold')">Золото</button>
+      <button class="btn" onclick="admGive('silver')">Серебро</button>
+      <button class="btn" onclick="admGive('crystal')">Кристаллы</button>
+      
+      <
